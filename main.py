@@ -5,23 +5,23 @@ from datetime import datetime, timedelta
 
 class Field:
     def __init__(self, value=None):
-        self._value = None
+        self.__value = None
         self.value = value
 
     @property
     def value(self):
-        return self._value
+        return self.__value
 
     @value.setter
     def value(self, new_value):
         self.validate(new_value)
-        self._value = new_value
+        self.__value = new_value
 
     def validate(self, value):
         pass
 
     def __str__(self):
-        return str(self._value)
+        return str(self.__value)
 
 
 class Name(Field):
@@ -43,9 +43,9 @@ class Birthday(Field):
 
     @property
     def days_to_birthday(self):
-        if self._value:
+        if self.value:
             today = datetime.now().date()
-            birthdate = datetime.strptime(self._value, "%Y-%m-%d").date()
+            birthdate = datetime.strptime(self.value, "%Y-%m-%d").date()
             next_birthday = datetime(today.year, birthdate.month, birthdate.day).date()
             if today > next_birthday:
                 next_birthday = datetime(today.year + 1, birthdate.month, birthdate.day).date()
