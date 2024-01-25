@@ -1,6 +1,6 @@
 from collections import UserDict
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class Field:
@@ -45,12 +45,10 @@ class Birthday(Field):
     def days_to_birthday(self):
         if self._value:
             today = datetime.now().date()
-            birthday_date = datetime.strptime(self._value, "%Y-%m-%d").date()
-
-            next_birthday = datetime(today.year, birthday_date.month, birthday_date.day).date()
+            birthdate = datetime.strptime(self._value, "%Y-%m-%d").date()
+            next_birthday = datetime(today.year, birthdate.month, birthdate.day).date()
             if today > next_birthday:
-                next_birthday = datetime(today.year + 1, birthday_date.month, birthday_date.day).date()
-
+                next_birthday = datetime(today.year + 1, birthdate.month, birthdate.day).date()
             days_remaining = (next_birthday - today).days
             return days_remaining
 
@@ -86,7 +84,7 @@ class Record:
 
     def __str__(self):
         phones_str = '; '.join(str(p) for p in self.phones)
-        return f"Contact: {self.name.value}, phones: {phones_str}, birthday: {self.birthday}"
+        return f"Contact: {self.name.value}, phones: {phones_str}, birthday: {self.birthday.value}"
 
 
 class AddressBook(UserDict):
