@@ -1,7 +1,8 @@
+import pickle
+import os
 from collections import UserDict
 import re
 from datetime import datetime, timedelta
-
 
 class Field:
     def __init__(self, value=None):
@@ -88,11 +89,24 @@ class Record:
 
 
 class AddressBook(UserDict):
+    def __init__(self, filename):
+        super().__init__()
+        self.filename = filename
+
     def add_record(self, record):
         self.data[record.name.value] = record
 
-    def find(self, name):
-        return self.data.get(name)
+    def find(self, query):
+        results = []
+        for record in self.data.values():
+            if query.lower() in record.name.value.lower():
+                results.append(record)
+            else:
+                for phone in record.phones:
+                    if query in phone.value:
+                        results.append(record)
+                        break
+        return results
 
     def delete(self, name):
         if name in self.data:
@@ -103,10 +117,23 @@ class AddressBook(UserDict):
         for i in range(0, len(records), batch_size):
             yield records[i:i + batch_size]
 
+    def save(self):
+        with open(self.filename, 'wb') as f:
+            pickle.dump(self.data, f)
 
-# Example usage:
-book = AddressBook()
+    def load(self):
+        if os.path.exists(self.filename):
+            with open(self.filename, 'rb') as f:
+                self.data = pickle.load(f)
 
+
+# Приклад використання:
+book = AddressBook("address_book.pkl")
+
+# Завантаження існуючих даних, якщо вони доступні
+book.load()
+
+# Додавання записів
 john_record = Record("John", "1990-05-20")
 john_record.add_phone("1234567890")
 john_record.add_phone("5555555555")
@@ -116,14 +143,19 @@ jane_record = Record("Jane", "1985-12-15")
 jane_record.add_phone("9876543210")
 book.add_record(jane_record)
 
-alice_record = Record("Alice", "1995-08-25")
-alice_record.add_phone("1112223333")
-book.add_record(alice_record)
+jane_record = Record("Taras", "1920-10-05")
+jane_record.add_phone("5556667770")
+book.add_record(jane_record)
 
-# Iterating over records in batches
-for batch in book.iterator(batch_size=2):
-    for record in batch:
-        print(record)
-        if record.birthday:
-            print(f"Days to Birthday: {record.birthday.days_to_birthday} days")
-    print('-' * 40)
+# Збереження адресної книги
+book.save()
+
+# Пошук контактів
+search_query = "555"
+results = book.find(search_query)
+if results:
+    print(f"Результати пошуку для '{search_query}':")
+    for result in results:
+        print(result)
+else:
+    print("Збігів не знайдено.")
